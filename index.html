@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Birthday Surprise 🎂</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #09080f;
+  color: #f8f6ff;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.puzzle { width: min(90%, 380px); padding: 25px 15px; }
+
+.eyebrow {
+  color: #ad8dd5;
+  font-size: 11px;
+  letter-spacing: 4px;
+  font-weight: bold;
+}
+
+h1 { font-size: 32px; }
+
+.subtitle { color: #a79fb5; font-size: 15px; }
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 21px;
+  margin: 45px 0 20px;
+}
+
+.dot {
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid #7e748f;
+  border-radius: 50%;
+}
+
+.dot.filled {
+  background: #f5edff;
+  box-shadow: 0 0 15px #bb86ff;
+}
+
+.status { height: 28px; color: #e4a6cc; }
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 320px;
+  margin: 15px auto;
+}
+
+.key {
+  min-height: 70px;
+  border: none;
+  border-radius: 20px;
+  background: transparent;
+  color: #faf8ff;
+  font-size: 29px;
+  cursor: pointer;
+}
+
+.key:hover { background: #38234f; }
+.key:active { transform: scale(.92); }
+.action { color: #cdaeff; }
+
+.hidden { display: none !important; }
+
+.website-button {
+  margin-top: 25px;
+  padding: 16px 24px;
+  border: 1px solid #cfa5ff;
+  border-radius: 30px;
+  background: #37234d;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.error { color: #e4a6cc; }
+</style>
+</head>
+
+<body>
+<main class="puzzle">
+  <p class="eyebrow">A LITTLE MYSTERY</p>
+  <h1>Enter the code</h1>
+  <p class="subtitle">Four digits stand between you and the surprise.</p>
+
+  <div class="dots" id="dots">
+    <span class="dot"></span>
+    <span class="dot"></span>
+    <span class="dot"></span>
+    <span class="dot"></span>
+  </div>
+
+  <p class="status" id="status" aria-live="polite"></p>
+
+  <div class="keypad" id="keypad">
+    <button class="key" data-digit="1">1</button>
+    <button class="key" data-digit="2">2</button>
+    <button class="key" data-digit="3">3</button>
+    <button class="key" data-digit="4">4</button>
+    <button class="key" data-digit="5">5</button>
+    <button class="key" data-digit="6">6</button>
+    <button class="key" data-digit="7">7</button>
+    <button class="key" data-digit="8">8</button>
+    <button class="key" data-digit="9">9</button>
+    <button class="key action" data-action="delete">✕</button>
+    <button class="key" data-digit="0">0</button>
+    <button class="key action" data-action="enter">✓</button>
+  </div>
+
+  <section id="success" class="hidden">
+    <h2>Unlocked! 💜</h2>
+    <p>Your surprise is waiting...</p>
+    <button class="website-button" id="openWebsite">
+      Enter My Website ❤️
+    </button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const CORRECT_PIN = "1234";
+
+  // Replace this with your published Canva website URL.
+  const WEBSITE_URL = "YOUR_CANVA_WEBSITE_URL";
+
+  const pin = [];
+  const dots = [...document.querySelectorAll(".dot")];
+  const keypad = document.getElementById("keypad");
+  const status = document.getElementById("status");
+  const success = document.getElementById("success");
+  let unlocked = false;
+
+  function updateDots() {
+    dots.forEach((dot, i) => {
+      dot.classList.toggle("filled", i < pin.length);
+    });
+  }
+
+  function addDigit(digit) {
+    if (unlocked || pin.length >= 4) return;
+    status.textContent = "";
+    pin.push(digit);
+    updateDots();
+  }
+
+  function deleteDigit() {
+    if (unlocked || !pin.length) return;
+    pin.pop();
+    status.textContent = "";
+    updateDots();
+  }
+
+  function checkPin() {
+    if (unlocked || pin.length !== 4) return;
+
+    if (pin.join("") === CORRECT_PIN) {
+      unlocked = true;
+      keypad.classList.add("hidden");
+      document.getElementById("dots").classList.add("hidden");
+      status.classList.add("hidden");
+      success.classList.remove("hidden");
+    } else {
+      status.textContent = "Wrong code! Try again 💗";
+      pin.length = 0;
+      updateDots();
+    }
+  }
+
+  keypad.addEventListener("click", event => {
+    const button = event.target.closest("button");
+    if (!button) return;
+
+    if (button.dataset.digit !== undefined) {
+      addDigit(button.dataset.digit);
+    } else if (button.dataset.action === "delete") {
+      deleteDigit();
+    } else if (button.dataset.action === "enter") {
+      checkPin();
+    }
+  });
+
+  document.addEventListener("keydown", event => {
+    if (/^[0-9]$/.test(event.key)) addDigit(event.key);
+    else if (event.key === "Backspace" || event.key === "Delete") {
+      deleteDigit();
+    } else if (event.key === "Enter") {
+      checkPin();
+    }
+  });
+
+  document.getElementById("openWebsite").addEventListener("click", () => {
+    if (WEBSITE_URL === "YOUR_CANVA_WEBSITE_URL") {
+      alert("Please add your published Canva website URL in the code.");
+      return;
+    }
+
+    window.open(WEBSITE_URL, "_blank", "noopener,noreferrer");
+  });
+})();
+</script>
+</body>
+</html>
